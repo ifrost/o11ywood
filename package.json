@@ -16,6 +16,7 @@
     "@grafana/data": "latest",
     "@grafana/eslint-config": "^2.5.1",
     "@grafana/runtime": "latest",
+    "@grafana/schema": "latest",
     "@grafana/toolkit": "latest",
     "@grafana/ui": "latest",
     "@types/lodash": "latest",
