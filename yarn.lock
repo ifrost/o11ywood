@@ -1104,7 +1104,7 @@
     systemjs "0.20.19"
     systemjs-plugin-css "0.1.37"
 
-"@grafana/schema@^8.3.0":
+"@grafana/schema@latest":
   version "8.3.0"
   resolved "https://registry.yarnpkg.com/@grafana/schema/-/schema-8.3.0.tgz#aa77f4e953c985735acde2ad8e8bf8183519fe92"
   integrity sha512-JWM1/TFfqBlNgqC5nFKydGcZkUfvHZBpmd2gPPvuzLTggZ/sC4WMGqD/vhBcFhzZd2n7t0JFUTMAzqTTPDZPPg==
@@ -3041,6 +3041,16 @@ autoprefixer@^9.6.1:
     num2fraction "^1.2.2"
     postcss "^7.0.32"
     postcss-value-parser "^4.1.0"
+
+aw-liner@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/aw-liner/-/aw-liner-0.0.9.tgz#3816a1c2d6aeab4c8cb87a2f79880d73d64e2407"
+  integrity sha1-OBahwtauq0yMuHoveYgNc9ZOJAc=
+
+aw-parser@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/aw-parser/-/aw-parser-0.1.1.tgz#c8399387c7e78b35b0d7e9709890ed7177b467ec"
+  integrity sha1-yDmTh8fnizWw1+lwmJDtcXe0Z+w=
 
 aws-sign2@~0.7.0:
   version "0.7.0"

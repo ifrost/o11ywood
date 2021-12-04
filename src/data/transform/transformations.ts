@@ -1,5 +1,10 @@
 import { DataFrame, FieldColorModeId, FieldType, MutableDataFrame } from '@grafana/data';
 import { GraphDrawStyle } from '@grafana/schema';
+import { default as awParser } from 'aw-parser';
+import { default as awLiner } from 'aw-liner';
+import { getPrintProfiles } from '../screenplay/printProfile';
+import { theTrialOfTheChicago7 } from '../screenplay/the-trial-of-the-chicago-7';
+import { createDaysAndNights, createSceneLength } from '../../fountain/queries';
 
 export type FountainToFrameTransformation = () => DataFrame[];
 
@@ -39,6 +44,77 @@ export const sceneLengthByLocation: FountainToFrameTransformation = () => {
   data.push(frame);
 
   return data;
+};
+
+const parseTestScreenplay = () => {
+  const screenplay = theTrialOfTheChicago7;
+  const config = {
+    print_headers: true,
+    print_actions: true,
+    print_dialogues: true,
+    print_notes: false,
+    print_sections: false,
+    print_synopsis: false,
+    each_scene_on_new_page: false,
+    double_space_between_scenes: false,
+    use_dual_dialogue: true,
+    merge_multiple_empty_lines: true,
+  };
+  const parsed = awParser.parser.parse(screenplay, config);
+  const liner = new awLiner.Liner(awParser.helpers);
+
+  const lines = liner.line(parsed.tokens, {
+    print: getPrintProfiles().usletter,
+    text_more: '(MORE)',
+    text_contd: "(CONT'D)",
+    split_dialogue: true,
+  });
+
+  return { parsed, lines };
+};
+
+export const test: FountainToFrameTransformation = () => {
+  const { parsed } = parseTestScreenplay();
+  const queryRunner = createDaysAndNights();
+  const result = queryRunner.run(parsed.tokens, true).filter(r => r.value);
+
+  const fields = result.map(({ label }) => {
+    return { name: label, values: [], type: FieldType.number };
+  });
+
+  const frame = new MutableDataFrame({
+    refId: 'A',
+    fields,
+  });
+
+  let fieldValue = result.reduce((prev, current) => {
+    prev[current.label] = current.value;
+    return prev;
+  }, {});
+  frame.add(fieldValue);
+
+  return [frame];
+};
+
+export const test2: FountainToFrameTransformation = () => {
+  const { parsed } = parseTestScreenplay();
+  const queryRunner = createSceneLength();
+  const result = queryRunner.run(parsed.tokens, true);
+  console.log(result);
+
+  const frame = new MutableDataFrame({
+    refId: 'A',
+    fields: [
+      { name: 'scene', values: [], type: FieldType.string },
+      { name: 'length', values: [], type: FieldType.number },
+    ],
+  });
+
+  result.forEach(({ header, length, location_type, type }, index) => {
+    frame.add({ scene: '#' + (index + 1).toString(), length });
+  });
+
+  return [frame];
 };
 
 /**
@@ -263,4 +339,6 @@ export const Queries: Record<string, FountainToFrameTransformation> = {
   daysNightsBreakdown: daysNightsBreakdown,
   sceneLength: sceneLength,
   sceneLengthBig: sceneLengthBig,
+  test,
+  test2,
 };
