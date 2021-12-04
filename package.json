@@ -14,15 +14,20 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@grafana/data": "latest",
-    "@grafana/toolkit": "latest",
+    "@grafana/eslint-config": "^2.5.1",
     "@grafana/runtime": "latest",
+    "@grafana/toolkit": "latest",
     "@grafana/ui": "latest",
-    "@types/lodash": "latest"
+    "@types/lodash": "latest",
+    "prettier": "^2.5.0"
   },
   "resolutions": {
     "rxjs": "7.3.0"
   },
   "engines": {
     "node": ">=14"
+  },
+  "dependencies": {
+    "rxjs": "^7.4.0"
   }
 }
