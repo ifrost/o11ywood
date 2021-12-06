@@ -6,7 +6,7 @@ import { getPrintProfiles } from '../screenplay/printProfile';
 import { theTrialOfTheChicago7 } from '../screenplay/the-trial-of-the-chicago-7';
 import { createDaysAndNights, createSceneLength } from '../../fountain/queries';
 
-export type FountainToFrameTransformation = () => DataFrame[];
+export type FountainToFrameTransformation = (content?: string) => DataFrame[];
 
 /**
  * Viz: bar chart
@@ -46,8 +46,8 @@ export const sceneLengthByLocation: FountainToFrameTransformation = () => {
   return data;
 };
 
-const parseTestScreenplay = () => {
-  const screenplay = theTrialOfTheChicago7;
+const parseTestScreenplay = (content?: string) => {
+  const screenplay = content ? content : theTrialOfTheChicago7;
   const config = {
     print_headers: true,
     print_actions: true,
@@ -73,8 +73,8 @@ const parseTestScreenplay = () => {
   return { parsed, lines };
 };
 
-export const test: FountainToFrameTransformation = () => {
-  const { parsed } = parseTestScreenplay();
+export const test: FountainToFrameTransformation = (content?: string) => {
+  const { parsed } = parseTestScreenplay(content);
   const queryRunner = createDaysAndNights();
   const result = queryRunner.run(parsed.tokens, true).filter(r => r.value);
 
@@ -96,8 +96,8 @@ export const test: FountainToFrameTransformation = () => {
   return [frame];
 };
 
-export const test2: FountainToFrameTransformation = () => {
-  const { parsed } = parseTestScreenplay();
+export const test2: FountainToFrameTransformation = (content?: string) => {
+  const { parsed } = parseTestScreenplay(content);
   const queryRunner = createSceneLength();
   const result = queryRunner.run(parsed.tokens, true);
   console.log(result);

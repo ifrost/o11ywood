@@ -4,33 +4,85 @@ import {
   DataQueryResponse,
   DataSourceInstanceSettings,
   FieldType,
+  MetricFindValue,
   MutableDataFrame,
 } from '@grafana/data';
-import { DataSourceWithBackend } from '@grafana/runtime';
+import { DataSourceWithBackend, getBackendSrv, getTemplateSrv, toDataQueryResponse } from '@grafana/runtime';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { cloneDeep, defaults } from 'lodash';
 import { Queries } from './data/transform/transformations';
+import { VariableSupport } from './VariableSupport';
 
 export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptions> {
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
   }
 
-  query(request: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
-    return new Observable(subscriber => {
-      let frames: DataFrame[] = [];
-      request.targets.forEach((query: MyQuery) => {
-        const transformation = Queries[query.queryType];
-        if (transformation) {
-          let result = transformation();
-          // if (result.length === 1) {
-          //   result = result.concat(this.multiplyFrame(result[0]));
-          // }
-          frames = frames.concat(result);
-        }
+  async getContent(fileName: string): Promise<string> {
+    const screenplay = await getBackendSrv()
+      .fetch({
+        url: '/api/ds/query',
+        method: 'POST',
+        data: {
+          queries: [{ datasource: this.getRef(), listFiles: true, getContent: fileName }],
+        },
+      })
+      .toPromise();
+
+    return screenplay.data.results.A.frames[0].schema.meta.custom.Content;
+  }
+
+  async getFiles(): Promise<string[]> {
+    const screenplay = await getBackendSrv()
+      .fetch({
+        url: '/api/ds/query',
+        method: 'POST',
+        data: {
+          queries: [{ datasource: this.getRef(), listFiles: true, getContent: '' }],
+        },
+      })
+      .toPromise();
+
+    return screenplay.data.results.A.frames[0].schema.meta.custom.Files;
+  }
+
+  getTagValues(options?: any): Promise<MetricFindValue[]> {
+    return this.getFiles().then(files => {
+      return files.map(file => {
+        return {
+          text: file,
+        };
       });
-      subscriber.next({ data: frames });
+    });
+  }
+
+  getTagKeys(options?: any): Promise<MetricFindValue[]> {
+    return Promise.resolve([{ text: 'file' }]);
+  }
+
+  query(request: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
+    const adhocFilters = getTemplateSrv().getAdhocFilters(this.name);
+    const files = adhocFilters.map(filter => {
+      return filter.value;
+    });
+    const adHocFile = files.length && files[0];
+
+    return new Observable(subscriber => {
+      this.getContent(adHocFile || request.targets[0].file).then(content => {
+        let frames: DataFrame[] = [];
+        request.targets.forEach((query: MyQuery) => {
+          const transformation = Queries[query.queryType];
+          if (transformation) {
+            let result = transformation(content);
+            // if (result.length === 1) {
+            //   result = result.concat(this.multiplyFrame(result[0]));
+            // }
+            frames = frames.concat(result);
+          }
+        });
+        subscriber.next({ data: frames });
+      });
     });
   }
 

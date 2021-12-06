@@ -3,7 +3,9 @@ package plugin
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -69,6 +71,21 @@ func (d *SampleDatasource) QueryData(ctx context.Context, req *backend.QueryData
 
 type queryModel struct {
 	WithStreaming bool `json:"withStreaming"`
+	ListFiles bool
+	GetContent string
+}
+
+type customMeta struct {
+	Files []string
+	Content string
+}
+
+type PluginConfig struct {
+	Path     string                     `yaml:"path" json:"path"`
+}
+
+func isFountain(name string) bool {
+	return strings.HasSuffix(name, ".fountain")
 }
 
 func (d *SampleDatasource) query(_ context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
@@ -90,6 +107,39 @@ func (d *SampleDatasource) query(_ context.Context, pCtx backend.PluginContext, 
 		data.NewField("time", nil, []time.Time{query.TimeRange.From, query.TimeRange.To}),
 		data.NewField("values", nil, []int64{10, 20}),
 	)
+
+	var files []string
+	var content = ""
+
+	var pluginConfig PluginConfig
+	json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &pluginConfig)
+
+	if qm.ListFiles && pluginConfig.Path != "" {
+		root := pluginConfig.Path
+		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+			files = append(files, path)
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+	if qm.GetContent != "" {
+		c, err := os.ReadFile(pluginConfig.Path + qm.GetContent)
+		content = string(c)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	var filteredFiles []string
+	for _, name := range files {
+		if isFountain(name) {
+			filteredFiles = append(filteredFiles, name[len(pluginConfig.Path):])
+		}
+	}
+	var meta customMeta = customMeta{ Files: filteredFiles, Content: content }
+	frame.SetMeta(&data.FrameMeta{Custom: meta})
 
 	// If query called with streaming on then return a channel
 	// to subscribe on a client-side and consume updates from a plugin.
@@ -118,11 +168,6 @@ func (d *SampleDatasource) CheckHealth(_ context.Context, req *backend.CheckHeal
 
 	var status = backend.HealthStatusOk
 	var message = "Data source is working"
-
-	if rand.Int()%2 == 0 {
-		status = backend.HealthStatusError
-		message = "randomized error"
-	}
 
 	return &backend.CheckHealthResult{
 		Status:  status,
