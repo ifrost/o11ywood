@@ -11,17 +11,17 @@ export const pulse: FountainToFrameTransformation = (screenaplay: string) => {
   console.log(results);
 
   const data = new MutableDataFrame({
-    fields: [{ name: 'field', type: FieldType.number }],
+    fields: [
+      { name: 'sentence', type: FieldType.number },
+      { name: 'value', type: FieldType.number },
+    ],
   });
-  data.add({ field: 1 });
 
-  let message = '';
-  if (false) {
-    message = 'error';
-  }
+  results.forEach(({ tempo }, index) => {
+    data.add({ sentence: index, value: tempo });
+  });
 
   return {
     frames: [data],
-    message,
   };
 };

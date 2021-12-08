@@ -20,6 +20,7 @@ import { intExt } from './intExt';
 import { locations } from './locations';
 import { conversations } from './conversations';
 import { pulse } from './pulse';
+import { textAnalysis } from './textAnalysis';
 
 export type FountainToFrameTransformation = (
   content?: string
@@ -377,4 +378,5 @@ export const Queries: Record<string, FountainToFrameTransformation> = {
   Locations: locations,
   Conversations: conversations,
   Pulse: pulse,
+  'Text Analysis': textAnalysis,
 };

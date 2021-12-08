@@ -1,11 +1,11 @@
 import { FountainToFrameTransformation } from './transformations';
 import { parseScreenplay } from './parser';
 import { FieldType, MutableDataFrame } from '@grafana/data';
-import {createCharacters} from "../../fountain/queries";
+import { createCharacters } from '../../fountain/queries';
 
 export const characters: FountainToFrameTransformation = (screenaplay: string) => {
   const { basics, parsed } = parseScreenplay(screenaplay);
-  const queryRunner = createCharacters(;
+  const queryRunner = createCharacters();
   const results = queryRunner.run(parsed.tokens, basics);
 
   console.log(results);
@@ -30,6 +30,6 @@ export const characters: FountainToFrameTransformation = (screenaplay: string) =
 
   return {
     frames: [data],
-    message
+    message,
   };
 };
