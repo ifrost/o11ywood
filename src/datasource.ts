@@ -71,6 +71,7 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
     return new Observable(subscriber => {
       this.getContent(adHocFile || request.targets[0].file).then(content => {
         let frames: DataFrame[] = [];
+        let errorMessage = '';
         request.targets.forEach((query: MyQuery) => {
           const transformation = Queries[query.queryType];
           if (transformation) {
@@ -78,10 +79,15 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
             // if (result.length === 1) {
             //   result = result.concat(this.multiplyFrame(result[0]));
             // }
-            frames = frames.concat(result);
+            frames = frames.concat(result.frames);
+            errorMessage += result.message || '';
           }
         });
-        subscriber.next({ data: frames });
+        const response: DataQueryResponse = { data: frames };
+        if (errorMessage) {
+          response.error = { message: errorMessage };
+        }
+        subscriber.next(response);
       });
     });
   }

@@ -4,9 +4,29 @@ import { default as awParser } from 'aw-parser';
 import { default as awLiner } from 'aw-liner';
 import { getPrintProfiles } from '../screenplay/printProfile';
 import { theTrialOfTheChicago7 } from '../screenplay/the-trial-of-the-chicago-7';
-import { createDaysAndNights, createSceneLength } from '../../fountain/queries';
+import {
+  createCharacters,
+  createDaysAndNights,
+  createSceneLength,
+  createWhoWithWhom,
+  getBasicStats,
+} from '../../fountain/queries';
+import { sceneLength } from './sceneLength';
+import { totals } from './totals';
+import { dialougeVsAction } from './dialougeVsAction';
+import { characters } from './characters';
+import { daysNights } from './daysNights';
+import { intExt } from './intExt';
+import { locations } from './locations';
+import { conversations } from './conversations';
+import { pulse } from './pulse';
 
-export type FountainToFrameTransformation = (content?: string) => DataFrame[];
+export type FountainToFrameTransformation = (
+  content?: string
+) => {
+  frames: DataFrame[];
+  message?: string;
+};
 
 /**
  * Viz: bar chart
@@ -43,7 +63,7 @@ export const sceneLengthByLocation: FountainToFrameTransformation = () => {
   frame.add({ scene: 'EXT. WOODEN SHACK - DAY', length: 0.2 });
   data.push(frame);
 
-  return data;
+  return { frames: data };
 };
 
 const parseTestScreenplay = (content?: string) => {
@@ -70,7 +90,9 @@ const parseTestScreenplay = (content?: string) => {
     split_dialogue: true,
   });
 
-  return { parsed, lines };
+  const basics = getBasicStats(getPrintProfiles().usletter).run(lines);
+
+  return { parsed, lines, basics };
 };
 
 export const test: FountainToFrameTransformation = (content?: string) => {
@@ -93,28 +115,31 @@ export const test: FountainToFrameTransformation = (content?: string) => {
   }, {});
   frame.add(fieldValue);
 
-  return [frame];
+  return {
+    frames: [frame],
+    message: 'You have 900 scenes in your screenplay.\n\nThis might be too much. Try keep number of scenes below 120.',
+  };
 };
 
 export const test2: FountainToFrameTransformation = (content?: string) => {
   const { parsed } = parseTestScreenplay(content);
   const queryRunner = createSceneLength();
   const result = queryRunner.run(parsed.tokens, true);
-  console.log(result);
 
   const frame = new MutableDataFrame({
     refId: 'A',
     fields: [
       { name: 'scene', values: [], type: FieldType.string },
       { name: 'length', values: [], type: FieldType.number },
+      { name: 'random', values: [], type: FieldType.number },
     ],
   });
 
   result.forEach(({ header, length, location_type, type }, index) => {
-    frame.add({ scene: '#' + (index + 1).toString(), length });
+    frame.add({ scene: '#' + (index + 1).toString(), length, random: Math.random() * 10 });
   });
 
-  return [frame];
+  return { frames: [frame] };
 };
 
 /**
@@ -136,7 +161,7 @@ export const sceneLengthBreakdown: FountainToFrameTransformation = () => {
     frame.add({ scene: scene.toFixed(0), day: isDay ? length : 0, night: isDay ? 0 : length });
   }
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
 /**
@@ -166,7 +191,7 @@ export const status: FountainToFrameTransformation = () => {
   // frame.add({ time: 60000 * 100, location: 'INT. STREET', MIKE: false  });
 
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
 /**
@@ -191,13 +216,18 @@ export const ranking: FountainToFrameTransformation = () => {
   frame.add({ name: 'PRINTER', dialogue: 0.05, dialogueF: '0:03', scenes: 1 });
 
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
 /**
  * Viz: node graph
  */
-export const talkers: FountainToFrameTransformation = () => {
+export const talkers: FountainToFrameTransformation = (content?: string) => {
+  const { parsed, basics } = parseTestScreenplay(content);
+  const queryRunner = createWhoWithWhom();
+  const result = queryRunner.run(parsed.tokens, basics, 10);
+  console.log(result);
+
   const nodes = new MutableDataFrame({
     refId: undefined,
     fields: [
@@ -206,10 +236,10 @@ export const talkers: FountainToFrameTransformation = () => {
       { name: 'color', values: [], type: FieldType.string },
     ],
   });
-  nodes.add({ id: '0', title: 'NAME 1', color: '#999900' });
-  nodes.add({ id: '1', title: 'NAME 2', color: '#999900' });
-  nodes.add({ id: '2', title: 'LOCATION 1', color: '#1155ff' });
-  nodes.add({ id: '3', title: 'LOCATION 2', color: '#1155ff' });
+
+  result.characters.forEach(({ name }, index) => {
+    nodes.add({ id: index, title: name, color: '#1155ff' });
+  });
 
   const edges = new MutableDataFrame({
     refId: undefined,
@@ -220,16 +250,12 @@ export const talkers: FountainToFrameTransformation = () => {
     ],
   });
 
-  edges.add({ id: '0', source: '0', target: '2' });
-  edges.add({ id: '0', source: '2', target: '0' });
+  result.links.forEach(({ link_id, from, to }) => {
+    edges.add({ id: link_id + '_A', source: from, target: to });
+    edges.add({ id: link_id + '_B', source: to, target: from });
+  });
 
-  edges.add({ id: '1', source: '2', target: '1' });
-  edges.add({ id: '1', source: '1', target: '2' });
-
-  edges.add({ id: '2', source: '3', target: '1' });
-  edges.add({ id: '2', source: '1', target: '3' });
-
-  return [nodes, edges];
+  return { frames: [nodes, edges] };
 };
 
 /**
@@ -249,7 +275,7 @@ export const sentiment: FountainToFrameTransformation = () => {
     frame.add({ minute: i * 60 * 1000, sentiment: (Math.random() - 0.5) * 2 });
   }
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
 export const sceneDialogueVsAction: FountainToFrameTransformation = () => {
@@ -270,7 +296,7 @@ export const sceneDialogueVsAction: FountainToFrameTransformation = () => {
     frame.add({ scene: scene.toFixed(0), action, dialogue, total });
   }
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
 export const daysNightsBreakdown: FountainToFrameTransformation = () => {
@@ -285,10 +311,10 @@ export const daysNightsBreakdown: FountainToFrameTransformation = () => {
   });
   frame.add({ days: 10, nights: 20 });
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
-export const sceneLength: FountainToFrameTransformation = () => {
+export const sceneLengthDeprecated: FountainToFrameTransformation = () => {
   const data = [];
   const frame = new MutableDataFrame({
     refId: 'A',
@@ -309,7 +335,7 @@ export const sceneLength: FountainToFrameTransformation = () => {
   frame.add({ scene: '10', length: 0.2 });
   frame.add({ scene: '11', length: 3 });
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
 export const sceneLengthBig: FountainToFrameTransformation = () => {
@@ -325,7 +351,7 @@ export const sceneLengthBig: FountainToFrameTransformation = () => {
     frame.add({ scene: scene.toFixed(0), length: Math.random() * 5 });
   }
   data.push(frame);
-  return data;
+  return { frames: data };
 };
 
 export const Queries: Record<string, FountainToFrameTransformation> = {
@@ -337,8 +363,18 @@ export const Queries: Record<string, FountainToFrameTransformation> = {
   sentiment: sentiment,
   sceneDialogueVsAction: sceneDialogueVsAction,
   daysNightsBreakdown: daysNightsBreakdown,
-  sceneLength: sceneLength,
+  sceneLength: sceneLengthDeprecated,
   sceneLengthBig: sceneLengthBig,
   test,
   test2,
+
+  'Scene Length': sceneLength,
+  Totals: totals,
+  'Dialogue/Action': dialougeVsAction,
+  Characters: characters,
+  'DAY/NIGHT': daysNights,
+  'INT/EXT': intExt,
+  Locations: locations,
+  Conversations: conversations,
+  Pulse: pulse,
 };
