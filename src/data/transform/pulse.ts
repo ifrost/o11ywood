@@ -4,21 +4,32 @@ import { FieldType, MutableDataFrame } from '@grafana/data';
 import { createTempo } from '../../fountain/queries';
 
 export const pulse: FountainToFrameTransformation = (screenaplay: string) => {
-  const { parsed } = parseScreenplay(screenaplay);
+  const { parsed, basics } = parseScreenplay(screenaplay);
   const queryRunner = createTempo();
   const results = queryRunner.run(parsed.tokens);
 
-  console.log(results);
+  const averaged = [];
+
+  const averageWindow = Math.ceil(results.length / 300);
+  for (let current = averageWindow; current < results.length; current += averageWindow) {
+    let total = 0;
+    for (let i = current; i >= current - averageWindow && i < results.length; i--) {
+      total += results[i].tempo;
+    }
+    averaged.push(total / averageWindow);
+  }
+
+  console.log(averaged);
 
   const data = new MutableDataFrame({
     fields: [
-      { name: 'sentence', type: FieldType.number },
-      { name: 'value', type: FieldType.number },
+      { name: 'Page', type: FieldType.number },
+      { name: 'Pulse', type: FieldType.number },
     ],
   });
 
-  results.forEach(({ tempo }, index) => {
-    data.add({ sentence: index, value: tempo });
+  averaged.forEach((value, index) => {
+    data.add({ Page: (index / averaged.length) * basics.pages, Pulse: value });
   });
 
   return {
