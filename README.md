@@ -2,7 +2,13 @@
 
 ## Description
 
-o11ywood is a Grafana plugin to vizualize and analyze movie screenplays.
+o11ywood is a Grafana plugin to visualize and analyze movie screenplays:
+
+![Script Pulse](https://github.com/ifrost/o11ywood/blob/main/gfx/script-pulse.png?raw=true)
+![Script Pulse](https://github.com/ifrost/o11ywood/blob/main/gfx/conversations.png?raw=true)
+![Script Pulse](https://github.com/ifrost/o11ywood/blob/main/gfx/dialogue-orchiestration.png?raw=true)
+![Script Pulse](https://github.com/ifrost/o11ywood/blob/main/gfx/dialogue-time.png?raw=true)
+![Script Pulse](https://github.com/ifrost/o11ywood/blob/main/gfx/timeline.png?raw=true)
 
 ## Getting started
 
