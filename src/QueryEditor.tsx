@@ -1,7 +1,7 @@
 import { defaults } from 'lodash';
 
 import React, { PureComponent, useCallback, useState, useEffect } from 'react';
-import { Select } from '@grafana/ui';
+import { InlineField, InlineFieldRow, InlineLabel, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from './datasource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
@@ -45,14 +45,30 @@ export const QueryEditor = (props: Props) => {
 
   return (
     <div className="gf-form">
-      <Select onChange={onFileChange} options={files} value={file} />
-      <Select
-        // @ts-ignore
-        menuShouldPortal={true}
-        options={queries}
-        onChange={onQueryChange}
-        value={queryType}
-      />
+      <InlineFieldRow width={500}>
+        <InlineField label="Screenplay">
+          <Select
+            // @ts-ignore
+            menuShouldPortal={true}
+            placeholder="Leave empty to use ad-hoc filters"
+            width={35}
+            onChange={onFileChange}
+            options={files}
+            value={file}
+          />
+        </InlineField>
+      </InlineFieldRow>
+      <InlineFieldRow width={500}>
+        <InlineField label="Query">
+          <Select
+            // @ts-ignore
+            menuShouldPortal={true}
+            options={queries}
+            onChange={onQueryChange}
+            value={queryType}
+          />
+        </InlineField>
+      </InlineFieldRow>
     </div>
   );
 };

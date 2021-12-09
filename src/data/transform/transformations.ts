@@ -21,6 +21,7 @@ import { locations } from './locations';
 import { conversations } from './conversations';
 import { pulse } from './pulse';
 import { textAnalysis } from './textAnalysis';
+import { characterScenes } from './characterScenes';
 
 export type FountainToFrameTransformation = (
   content?: string
@@ -356,18 +357,18 @@ export const sceneLengthBig: FountainToFrameTransformation = () => {
 };
 
 export const Queries: Record<string, FountainToFrameTransformation> = {
-  sceneLengthByLocation: sceneLengthByLocation,
-  sceneLengthBreakdown: sceneLengthBreakdown,
-  status: status,
-  ranking: ranking,
-  talkers: talkers,
-  sentiment: sentiment,
-  sceneDialogueVsAction: sceneDialogueVsAction,
-  daysNightsBreakdown: daysNightsBreakdown,
-  sceneLength: sceneLengthDeprecated,
-  sceneLengthBig: sceneLengthBig,
-  test,
-  test2,
+  // sceneLengthByLocation: sceneLengthByLocation,
+  // sceneLengthBreakdown: sceneLengthBreakdown,
+  // status: status,
+  // ranking: ranking,
+  // talkers: talkers,
+  // sentiment: sentiment,
+  // sceneDialogueVsAction: sceneDialogueVsAction,
+  // daysNightsBreakdown: daysNightsBreakdown,
+  // sceneLength: sceneLengthDeprecated,
+  // sceneLengthBig: sceneLengthBig,
+  // test,
+  // test2,
 
   'Scene Length': sceneLength,
   Totals: totals,
@@ -379,4 +380,5 @@ export const Queries: Record<string, FountainToFrameTransformation> = {
   Conversations: conversations,
   Pulse: pulse,
   'Text Analysis': textAnalysis,
+  'Characters/Scenes': characterScenes,
 };

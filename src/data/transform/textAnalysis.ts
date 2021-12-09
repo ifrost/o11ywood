@@ -54,7 +54,7 @@ export const textAnalysis: FountainToFrameTransformation = (screenaplay: string)
     }
   });
 
-  console.log(topCharacters);
+  console.log(results);
 
   const data = new MutableDataFrame({
     fields,

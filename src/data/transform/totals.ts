@@ -18,7 +18,7 @@ export const totals: FountainToFrameTransformation = (screenaplay: string) => {
     message += `The screenplay has ${basics.pages} pages. Average screenplay has 80-120 pages. `;
   }
   if (basics.scenes > 120 || basics.scenes < 80) {
-    message += `The screenplay has ${basics.pages} scenes. Average screenplay has 80-120 scenes.`;
+    message += `The screenplay has ${basics.scenes.toFixed()} scenes. Average screenplay has 80-120 scenes.`;
   }
 
   return {

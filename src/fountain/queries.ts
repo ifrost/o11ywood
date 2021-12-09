@@ -457,6 +457,20 @@ export const createTextAnalysis = function() {
   return query;
 };
 
+export const createCharacterScenes = function() {
+  const h = fhelpers.fq;
+  const query = FQueryBuilder('token', {});
+  query.enter(h.is('scene_heading'), function(token, fq) {
+    fq.select(token); // remembers last selection
+  });
+  query.enter(h.is('character'), function(item, fq) {
+    if (fq.last_selection) {
+      fq.last_selection[item.name()] = true;
+    }
+  });
+  return query;
+};
+
 let helper = {};
 helper.pairs = function(t) {
   var result = t
