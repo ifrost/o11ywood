@@ -1,14 +1,8 @@
-# Grafana Data Source Backend Plugin Template
+# Grafana o11ywood data source plugin
 
-[![Build](https://github.com/grafana/grafana-starter-datasource-backend/workflows/CI/badge.svg)](https://github.com/grafana/grafana-datasource-backend/actions?query=workflow%3A%22CI%22)
+## Description
 
-This template is a starting point for building Grafana Data Source Backend Plugins
-
-## What is Grafana Data Source Backend Plugin?
-
-Grafana supports a wide range of data sources, including Prometheus, MySQL, and even Datadog. There’s a good chance you can already visualize metrics from the systems you have set up. In some cases, though, you already have an in-house metrics solution that you’d like to add to your Grafana dashboards. Grafana Data Source Plugins enables integrating such solutions with Grafana.
-
-For more information about backend plugins, refer to the documentation on [Backend plugins](https://grafana.com/docs/grafana/latest/developers/plugins/backend/).
+o11ywood is a Grafana plugin to vizualize and analyze movie screenplays.
 
 ## Getting started
 
